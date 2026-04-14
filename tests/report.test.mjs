@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { renderMarkdownReport } from '../src/report/markdown.mjs';
 import { renderExplanation } from '../src/report/explain.mjs';
+import { renderHtmlReport } from '../src/report/html.mjs';
 
 const sample = {
   runId: 'sample',
@@ -46,4 +47,12 @@ test('renderExplanation gives a plain-English summary', () => {
   assert.match(explanation, /# CloudEval explanation/);
   assert.match(explanation, /Best overall model: \*\*workers-ai\/\@cf\/zai-org\/glm-5\.1\*\*/);
   assert.match(explanation, /What to do next/);
+});
+
+test('renderHtmlReport creates a shareable html document', () => {
+  const html = renderHtmlReport(sample);
+  assert.match(html, /<!doctype html>/i);
+  assert.match(html, /CloudEval report/);
+  assert.match(html, /Report for/iu);
+  assert.match(html, /Best model/iu);
 });

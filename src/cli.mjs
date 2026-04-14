@@ -49,13 +49,14 @@ function printHelp() {
 Usage:
   cloudeval init [--force]
   cloudeval doctor
-  cloudeval run --dataset <name> --models <a,b> [--braintrust]
+  cloudeval run --dataset <name> --models <a,b> [--braintrust] [--output-dir <dir>] [--mock]
   cloudeval report --results <file>
   cloudeval explain --results <file>
   cloudeval compare --a <file> --b <file>
 
 Examples:
   cloudeval run --dataset chat-response --models workers-ai/@cf/zai-org/glm-5.1,baseline
+  cloudeval run --dataset agent-quality --models workers-ai/@cf/zai-org/glm-5.1,baseline --output-dir .cloudeval/runs
   cloudeval run --dataset agent-quality --models workers-ai/@cf/zai-org/glm-5.1,baseline --braintrust
   cloudeval report --results ./results/chat-response-2026.json
 `);
@@ -131,7 +132,9 @@ export async function main(argv = process.argv.slice(2)) {
       const dataset = flags.dataset;
       if (!dataset) throw new Error("`--dataset` is required");
       const models = resolveModels(config, splitCsv(flags.models));
-      const out = flags.out ? resolve(cwd, flags.out) : undefined;
+      const legacyOut = flags.out;
+      const outputFile = legacyOut && String(legacyOut).endsWith(".json") ? legacyOut : undefined;
+      const outputDir = flags["output-dir"] ?? flags.outputDir ?? flags.outDir ?? (legacyOut && !String(legacyOut).endsWith(".json") ? legacyOut : undefined);
       if (flags.braintrust) {
         const datasetPath = config.datasets[dataset];
         if (!datasetPath) throw new Error(`Unknown dataset: ${dataset}`);
@@ -202,13 +205,22 @@ export async function main(argv = process.argv.slice(2)) {
         datasetName: dataset,
         modelList: models,
         judgeModel: flags.judge,
-        outputFile: out,
+        outputFile,
+        outputDir,
         providerName: flags.provider ?? config.defaultProvider,
         apiToken: process.env.CLOUDFLARE_API_TOKEN,
-        accountId: process.env.CLOUDFLARE_ACCOUNT_ID
+        accountId: process.env.CLOUDFLARE_ACCOUNT_ID,
+        mock: Boolean(flags.mock || flags.offline),
       });
       console.log(result.markdown);
-      console.log(`\nSaved results to ${result.destination}`);
+      if (result.artifacts?.dir) {
+        console.log(`\nSaved artifacts to ${result.artifacts.dir}`);
+        console.log(`- JSON: ${result.artifacts.json}`);
+        console.log(`- HTML: ${result.artifacts.html}`);
+        console.log(`- Markdown: ${result.artifacts.markdown}`);
+      } else {
+        console.log(`\nSaved results to ${result.destination}`);
+      }
       return;
     }
 

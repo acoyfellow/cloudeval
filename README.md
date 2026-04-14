@@ -55,6 +55,21 @@ That will:
 - score the outputs
 - write a shareable summary to `.cloudeval/braintrust/`
 
+## Local output layout
+
+By default, a local run writes a portable artifact folder under `.cloudeval/runs/`:
+
+```text
+.cloudeval/runs/<run-id>-<dataset>-<models>/
+  run.json
+  report.html
+  report.md
+  summary.txt
+  meta.json
+```
+
+`run.json` is the canonical machine-readable file. The HTML report is the easiest thing to open or send around.
+
 ## Config
 
 CloudEval looks for `evals.config.mjs`.
