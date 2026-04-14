@@ -1,0 +1,22 @@
+{
+  "name": "cloudeval",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Run model evals, compare results, and ship shareable reports.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/acoyfellow/cloudeval.git"
+  },
+  "bin": {
+    "cloudeval": "./bin/cloudeval.mjs"
+  },
+  "scripts": {
+    "start": "node ./bin/cloudeval.mjs",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

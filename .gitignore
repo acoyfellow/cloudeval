@@ -1,0 +1,5 @@
+node_modules/
+results/
+.cloudeval/
+.env
+.DS_Store
