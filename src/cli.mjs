@@ -4,6 +4,7 @@ import { spawnSync } from "node:child_process";
 import { exists, ensureDir, writeTextFile } from "./utils/fs.mjs";
 import { loadConfig, resolveConfigPath } from "./config/load.mjs";
 import { runEval } from "./runners/eval-runner.mjs";
+import { scoreNetworkCaptures } from "./runners/network-scorer.mjs";
 import { renderMarkdownReport } from "./report/markdown.mjs";
 import { renderExplanation } from "./report/explain.mjs";
 import { writeBraintrustEval } from "./braintrust/generate.mjs";
@@ -50,14 +51,15 @@ Usage:
   cloudeval init [--force]
   cloudeval doctor
   cloudeval run --dataset <name> --models <a,b> [--braintrust] [--output-dir <dir>] [--mock]
+  cloudeval score-network --dataset <name> --kv-namespace <id> [--model <filter>] [--limit <n>]
   cloudeval report --results <file>
   cloudeval explain --results <file>
   cloudeval compare --a <file> --b <file>
 
 Examples:
-  cloudeval run --dataset chat-response --models workers-ai/@cf/zai-org/glm-5.1,baseline
-  cloudeval run --dataset agent-quality --models workers-ai/@cf/zai-org/glm-5.1,baseline --output-dir .cloudeval/runs
-  cloudeval run --dataset agent-quality --models workers-ai/@cf/zai-org/glm-5.1,baseline --braintrust
+  cloudeval run --dataset chat-response --models workers-ai/@cf/zai-org/glm-4.7-flash,baseline
+  cloudeval run --dataset agent-quality --models workers-ai/@cf/zai-org/glm-4.7-flash,baseline --braintrust
+  cloudeval score-network --dataset agent-quality --kv-namespace abc123
   cloudeval report --results ./results/chat-response-2026.json
 `);
 }
@@ -220,6 +222,39 @@ export async function main(argv = process.argv.slice(2)) {
         console.log(`- Markdown: ${result.artifacts.markdown}`);
       } else {
         console.log(`\nSaved results to ${result.destination}`);
+      }
+      return;
+    }
+
+    if (command === "score-network") {
+      const config = await loadConfig(cwd);
+      if (!config) throw new Error("Missing evals.config.mjs. Run `cloudeval init` first.");
+      const dataset = flags.dataset;
+      if (!dataset) throw new Error("`--dataset` is required");
+      const kvNamespaceId = flags["kv-namespace"] ?? flags.kvNamespace ?? process.env.EVAL_KV_NAMESPACE_ID;
+      if (!kvNamespaceId) throw new Error("`--kv-namespace` or EVAL_KV_NAMESPACE_ID is required");
+
+      const result = await scoreNetworkCaptures({
+        cwd,
+        config,
+        datasetName: dataset,
+        kvNamespaceId,
+        judgeModel: flags.judge,
+        outputDir: flags["output-dir"] ?? flags.outputDir,
+        apiToken: process.env.CLOUDFLARE_API_TOKEN,
+        accountId: process.env.CLOUDFLARE_ACCOUNT_ID,
+        modelFilter: flags.model ?? "",
+        limit: parseInt(flags.limit ?? "100", 10),
+      });
+
+      if (!result) {
+        console.log("No results to score. Check that ai-benchmarking probes are running and EVAL_CAPTURE_ENABLED is set.");
+        return;
+      }
+
+      console.log(result.markdown);
+      if (result.artifacts?.dir) {
+        console.log(`\nSaved artifacts to ${result.artifacts.dir}`);
       }
       return;
     }

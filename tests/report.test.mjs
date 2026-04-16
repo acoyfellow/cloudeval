@@ -7,12 +7,12 @@ import { renderHtmlReport } from '../src/report/html.mjs';
 const sample = {
   runId: 'sample',
   dataset: 'agent-quality',
-  models: ['workers-ai/@cf/zai-org/glm-5.1', 'baseline'],
+  models: ['workers-ai/@cf/zai-org/glm-4.7-flash', 'baseline'],
   judgeModel: '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
   provider: 'workers-ai',
   modelRuns: [
     {
-      model: 'workers-ai/@cf/zai-org/glm-5.1',
+      model: 'workers-ai/@cf/zai-org/glm-4.7-flash',
       summary: { avgScore: 0.86, passRate: 0.75, rows: 4, failures: 1 },
       rows: [
         { id: 'a', input: 'q1', score: 1, scorer: 'Correctness', output: 'ok' },
@@ -37,7 +37,7 @@ const sample = {
 test('renderMarkdownReport includes key summary sections', () => {
   const report = renderMarkdownReport(sample);
   assert.match(report, /# CloudEval report/);
-  assert.match(report, /Best model in this run: \*\*workers-ai\/\@cf\/zai-org\/glm-5\.1\*\*/);
+  assert.match(report, /Best model in this run: \*\*workers-ai\/\@cf\/zai-org\/glm-4\.7-flash\*\*/);
   assert.match(report, /Largest model spread by row/);
   assert.match(report, /Biggest misses/);
 });
@@ -45,7 +45,7 @@ test('renderMarkdownReport includes key summary sections', () => {
 test('renderExplanation gives a plain-English summary', () => {
   const explanation = renderExplanation(sample);
   assert.match(explanation, /# CloudEval explanation/);
-  assert.match(explanation, /Best overall model: \*\*workers-ai\/\@cf\/zai-org\/glm-5\.1\*\*/);
+  assert.match(explanation, /Best overall model: \*\*workers-ai\/\@cf\/zai-org\/glm-4\.7-flash\*\*/);
   assert.match(explanation, /What to do next/);
 });
 
