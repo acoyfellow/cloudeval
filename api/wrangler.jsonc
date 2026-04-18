@@ -8,7 +8,10 @@
   "workers_dev": true,
   "kv_namespaces": [
     { "binding": "EVAL_RESPONSES", "id": "287a703cc056438d99247cdf049daf22" }
-  ]
+  ],
+  "vars": {
+    "VIEWER_URL": "https://cloudeval-ui.cloudflare-support-chat.workers.dev"
+  }
   // SECRETS (set via `wrangler secret put UPLOAD_TOKEN`):
   //   UPLOAD_TOKEN — required by POST /api/runs (Bearer auth)
 }

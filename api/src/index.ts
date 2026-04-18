@@ -20,6 +20,7 @@ import type { EvalRun } from "./types";
 interface Env {
   EVAL_RESPONSES: KVNamespace;
   UPLOAD_TOKEN: string;
+  VIEWER_URL?: string;
 }
 
 function json(body: unknown, init?: ResponseInit): Response {
@@ -64,10 +65,20 @@ export default {
       }
       try {
         const summary = await storeRun(env, run);
+        // Optional viewer URL: request can include `?viewer=https://cloudeval-ui...`
+        // or header `X-Viewer-Url`. If set, we return a shareable URL for the CLI.
+        const viewerUrl =
+          url.searchParams.get("viewer") ||
+          request.headers.get("x-viewer-url") ||
+          env.VIEWER_URL;
+        const viewLink = viewerUrl
+          ? `${viewerUrl.replace(/\/$/, "")}/runs/${run.runId}`
+          : undefined;
         return json(
           {
             status: "ok",
             runId: run.runId,
+            url: viewLink,
             summary,
           },
           { status: 201 }
