@@ -50,7 +50,7 @@ function printHelp() {
 Usage:
   cloudeval init [--force]
   cloudeval doctor
-  cloudeval run --dataset <name> --models <a,b> [--braintrust] [--output-dir <dir>] [--mock]
+  cloudeval run --dataset <name> --models <a,b> [--braintrust] [--output-dir <dir>] [--mock] [--upload <url>]
   cloudeval score-network --dataset <name> --kv-namespace <id> [--model <filter>] [--limit <n>]
   cloudeval report --results <file>
   cloudeval explain --results <file>
@@ -222,6 +222,38 @@ export async function main(argv = process.argv.slice(2)) {
         console.log(`- Markdown: ${result.artifacts.markdown}`);
       } else {
         console.log(`\nSaved results to ${result.destination}`);
+      }
+
+      const uploadUrl = flags.upload ?? process.env.CLOUDEVAL_UPLOAD_URL;
+      const uploadToken = flags["upload-token"] ?? process.env.CLOUDEVAL_UPLOAD_TOKEN;
+      if (uploadUrl) {
+        if (!uploadToken) {
+          console.error("Upload requested but CLOUDEVAL_UPLOAD_TOKEN not set (or pass --upload-token).");
+        } else {
+          try {
+            const payload = result.artifacts?.json
+              ? JSON.parse(await readFile(result.artifacts.json, "utf8"))
+              : result.run ?? result;
+            const target = uploadUrl.replace(/\/$/, "") + "/api/runs";
+            const res = await fetch(target, {
+              method: "POST",
+              headers: {
+                "content-type": "application/json",
+                "authorization": `Bearer ${uploadToken}`,
+              },
+              body: JSON.stringify(payload),
+            });
+            const body = await res.json().catch(() => ({}));
+            if (res.ok && body?.status === "ok") {
+              console.log(`\nUploaded to ${target}`);
+              console.log(`View: ${body.url}`);
+            } else {
+              console.error(`Upload failed (${res.status}): ${body?.error ?? 'unknown'}`);
+            }
+          } catch (err) {
+            console.error(`Upload error: ${err instanceof Error ? err.message : String(err)}`);
+          }
+        }
       }
       return;
     }

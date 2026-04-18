@@ -9,11 +9,18 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as RunsRouteImport } from './routes/runs'
 import { Route as RunRouteImport } from './routes/run'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as CapturesRouteImport } from './routes/captures'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as RunsRunIdRouteImport } from './routes/runs.$runId'
 
+const RunsRoute = RunsRouteImport.update({
+  id: '/runs',
+  path: '/runs',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RunRoute = RunRouteImport.update({
   id: '/run',
   path: '/run',
@@ -34,18 +41,27 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RunsRunIdRoute = RunsRunIdRouteImport.update({
+  id: '/$runId',
+  path: '/$runId',
+  getParentRoute: () => RunsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/captures': typeof CapturesRoute
   '/dashboard': typeof DashboardRoute
   '/run': typeof RunRoute
+  '/runs': typeof RunsRouteWithChildren
+  '/runs/$runId': typeof RunsRunIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/captures': typeof CapturesRoute
   '/dashboard': typeof DashboardRoute
   '/run': typeof RunRoute
+  '/runs': typeof RunsRouteWithChildren
+  '/runs/$runId': typeof RunsRunIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +69,28 @@ export interface FileRoutesById {
   '/captures': typeof CapturesRoute
   '/dashboard': typeof DashboardRoute
   '/run': typeof RunRoute
+  '/runs': typeof RunsRouteWithChildren
+  '/runs/$runId': typeof RunsRunIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/captures' | '/dashboard' | '/run'
+  fullPaths:
+    | '/'
+    | '/captures'
+    | '/dashboard'
+    | '/run'
+    | '/runs'
+    | '/runs/$runId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/captures' | '/dashboard' | '/run'
-  id: '__root__' | '/' | '/captures' | '/dashboard' | '/run'
+  to: '/' | '/captures' | '/dashboard' | '/run' | '/runs' | '/runs/$runId'
+  id:
+    | '__root__'
+    | '/'
+    | '/captures'
+    | '/dashboard'
+    | '/run'
+    | '/runs'
+    | '/runs/$runId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,10 +98,18 @@ export interface RootRouteChildren {
   CapturesRoute: typeof CapturesRoute
   DashboardRoute: typeof DashboardRoute
   RunRoute: typeof RunRoute
+  RunsRoute: typeof RunsRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/runs': {
+      id: '/runs'
+      path: '/runs'
+      fullPath: '/runs'
+      preLoaderRoute: typeof RunsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/run': {
       id: '/run'
       path: '/run'
@@ -99,14 +138,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/runs/$runId': {
+      id: '/runs/$runId'
+      path: '/$runId'
+      fullPath: '/runs/$runId'
+      preLoaderRoute: typeof RunsRunIdRouteImport
+      parentRoute: typeof RunsRoute
+    }
   }
 }
+
+interface RunsRouteChildren {
+  RunsRunIdRoute: typeof RunsRunIdRoute
+}
+
+const RunsRouteChildren: RunsRouteChildren = {
+  RunsRunIdRoute: RunsRunIdRoute,
+}
+
+const RunsRouteWithChildren = RunsRoute._addFileChildren(RunsRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CapturesRoute: CapturesRoute,
   DashboardRoute: DashboardRoute,
   RunRoute: RunRoute,
+  RunsRoute: RunsRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

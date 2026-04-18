@@ -3,15 +3,18 @@
   "name": "cloudeval-ui",
   "compatibility_date": "2025-09-02",
   "compatibility_flags": ["nodejs_compat"],
-  "main": "@tanstack/react-start/server-entry",
+  "main": "./src/worker-entry.ts",
   "observability": { "enabled": true },
   "placement": { "mode": "smart" },
   "kv_namespaces": [
     { "binding": "EVAL_RESPONSES", "id": "287a703cc056438d99247cdf049daf22" }
   ],
   "ai": { "binding": "AI" },
-  "workers_dev": false,
+  "workers_dev": true,
   "vars": {
     "EVAL_PROBE_URL": ""  // TODO: set to new eval probe URL (old one deleted during incident)
   }
+  // SECRETS (not in vars — set via `wrangler secret put UPLOAD_TOKEN`):
+  //   UPLOAD_TOKEN — required by POST /api/runs (Bearer auth). Generate with:
+  //     node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
 }
