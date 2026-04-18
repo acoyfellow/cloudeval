@@ -5,7 +5,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { fetchRuns } from '@/lib/api'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/Table'
 
-export const Route = createFileRoute('/runs')({
+export const Route = createFileRoute('/runs/')({
   component: RunsPage,
 })
 

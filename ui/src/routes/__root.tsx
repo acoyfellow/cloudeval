@@ -19,10 +19,7 @@ export const Route = createRootRoute({
 
 function RootComponent() {
   const tabs = [
-    { value: '/dashboard', label: 'Dashboard' },
     { value: '/runs', label: 'Runs' },
-    { value: '/run', label: 'Run Evals' },
-    { value: '/captures', label: 'Captures' },
   ]
 
   return (

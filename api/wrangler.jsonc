@@ -1,0 +1,14 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "cloudeval-api",
+  "main": "./src/index.ts",
+  "compatibility_date": "2025-09-02",
+  "compatibility_flags": ["nodejs_compat"],
+  "observability": { "enabled": true },
+  "workers_dev": true,
+  "kv_namespaces": [
+    { "binding": "EVAL_RESPONSES", "id": "287a703cc056438d99247cdf049daf22" }
+  ]
+  // SECRETS (set via `wrangler secret put UPLOAD_TOKEN`):
+  //   UPLOAD_TOKEN — required by POST /api/runs (Bearer auth)
+}
